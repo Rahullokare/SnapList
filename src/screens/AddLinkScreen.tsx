@@ -157,11 +157,12 @@ const pickerSelectStyles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 8,
     borderWidth: 0.5,
-    borderColor: 'gray',
+    borderColor: 'purple',
     borderRadius: 8,
     color: 'black',
     paddingRight: 30,
-    marginBottom: 15,
+    backgroundColor: 'grey',
+    marginBottom: 12,
   },
 });
 const styles = StyleSheet.create({
