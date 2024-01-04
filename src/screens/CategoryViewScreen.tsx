@@ -14,6 +14,7 @@ import Icon from 'react-native-vector-icons/Feather'; // Import the icon library
 
 interface CategoryViewScreenProps {
   route: RouteProp<RootStackParamList, 'Category'>;
+  navigation: any;
 }
 
 interface SavedItem {
@@ -24,8 +25,12 @@ interface SavedItem {
   link: string;
 }
 
-const CategoryViewScreen: React.FC<CategoryViewScreenProps> = ({route}) => {
+const CategoryViewScreen: React.FC<CategoryViewScreenProps> = ({
+  route,
+  navigation,
+}) => {
   const {category} = route.params;
+
   const [categoryData, setCategoryData] = useState<SavedItem[]>([]);
 
   useEffect(() => {
@@ -61,13 +66,30 @@ const CategoryViewScreen: React.FC<CategoryViewScreenProps> = ({route}) => {
     </View>
   );
 
+  const renderEmptyCategory = () => (
+    <View style={styles.emptyCategoryContainer}>
+      <Text style={styles.emptyCategoryText}>No links in this category.</Text>
+      <TouchableOpacity
+        style={styles.addButton}
+        onPress={() => {
+          navigation.navigate('AddLink');
+        }}>
+        <Text style={styles.addButtonLabel}>Add Link</Text>
+      </TouchableOpacity>
+    </View>
+  );
+
   return (
     <View>
-      <FlatList
-        data={categoryData}
-        renderItem={renderCategoryItem}
-        keyExtractor={item => item.id}
-      />
+      {categoryData.length === 0 ? (
+        renderEmptyCategory()
+      ) : (
+        <FlatList
+          data={categoryData}
+          renderItem={renderCategoryItem}
+          keyExtractor={item => item.id}
+        />
+      )}
     </View>
   );
 };
@@ -101,6 +123,27 @@ const styles = StyleSheet.create({
   link: {
     color: 'blue',
     textDecorationLine: 'underline',
+  },
+  emptyCategoryContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 20,
+  },
+  emptyCategoryText: {
+    fontSize: 18,
+    color: '#555',
+    marginBottom: 20,
+  },
+  addButton: {
+    backgroundColor: 'blue',
+    padding: 15,
+    borderRadius: 5,
+    alignItems: 'center',
+  },
+  addButtonLabel: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });
 

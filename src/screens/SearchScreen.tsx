@@ -8,8 +8,9 @@ import {
   StyleSheet,
   Linking,
 } from 'react-native';
-import {getSavedItems, SavedItem} from '../services/storageService'; // Import your storage service functions
+import {getSavedItems, SavedItem} from '../services/storageService';
 import Icon from 'react-native-vector-icons/Feather';
+
 interface SearchScreenProps {
   navigation: any;
 }
@@ -19,9 +20,8 @@ const SearchScreen: React.FC<SearchScreenProps> = ({navigation}) => {
   const [searchResults, setSearchResults] = useState<SavedItem[]>([]);
 
   useEffect(() => {
-    // Function to fetch saved items based on search query
     const searchItems = async () => {
-      const savedItems: SavedItem[] = await getSavedItems(); // Use your storage service function here
+      const savedItems: SavedItem[] = await getSavedItems();
       const filteredItems = savedItems.filter(item =>
         item.title?.toLowerCase().includes(searchQuery.toLowerCase()),
       );
@@ -30,6 +30,7 @@ const SearchScreen: React.FC<SearchScreenProps> = ({navigation}) => {
 
     searchItems();
   }, [searchQuery]);
+
   const renderItem = ({item}: {item: SavedItem}) => (
     <TouchableOpacity
       style={styles.itemContainer}
@@ -38,11 +39,9 @@ const SearchScreen: React.FC<SearchScreenProps> = ({navigation}) => {
       }}>
       <View style={styles.itemContent}>
         <Text style={styles.itemName}>{item.title}</Text>
-        {/* Add more details as needed */}
         <Text style={styles.itemDescription}>{item.note}</Text>
         <TouchableOpacity
           onPress={() => {
-            // Open the link when the icon is pressed
             Linking.openURL(item.link).catch(err =>
               console.error('Error opening link:', err),
             );
@@ -55,6 +54,12 @@ const SearchScreen: React.FC<SearchScreenProps> = ({navigation}) => {
     </TouchableOpacity>
   );
 
+  const renderNoResultsMessage = () => (
+    <View style={styles.noResultsContainer}>
+      <Text style={styles.noResultsText}>No results found.</Text>
+    </View>
+  );
+
   return (
     <View style={styles.container}>
       <TextInput
@@ -63,11 +68,15 @@ const SearchScreen: React.FC<SearchScreenProps> = ({navigation}) => {
         value={searchQuery}
         onChangeText={text => setSearchQuery(text)}
       />
-      <FlatList
-        data={searchResults}
-        renderItem={renderItem}
-        keyExtractor={item => item.id.toString()}
-      />
+      {searchResults.length > 0 ? (
+        <FlatList
+          data={searchResults}
+          renderItem={renderItem}
+          keyExtractor={item => item.id.toString()}
+        />
+      ) : (
+        renderNoResultsMessage()
+      )}
     </View>
   );
 };
@@ -104,7 +113,6 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#ddd',
   },
-
   itemContent: {
     flexDirection: 'column',
   },
@@ -115,6 +123,15 @@ const styles = StyleSheet.create({
   },
   itemDescription: {
     color: '#666',
+  },
+  noResultsContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  noResultsText: {
+    fontSize: 18,
+    color: '#555',
   },
 });
 
