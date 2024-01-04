@@ -1,18 +1,17 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {
   View,
   Text,
   TextInput,
-  Button,
   Alert,
   StyleSheet,
   TouchableOpacity,
 } from 'react-native';
-import {Formik} from 'formik';
 import * as Yup from 'yup';
-import {saveItem, SavedItem} from '../services/storageService';
 import RNPickerSelect from 'react-native-picker-select';
+import {useNavigation} from '@react-navigation/native'; // Import useNavigation
 import {categories} from '../utils/CategoryData';
+import {saveItem, SavedItem} from '../services/storageService';
 
 interface AddLinkFormValues {
   title: string;
@@ -29,31 +28,57 @@ const validationSchema = Yup.object().shape({
 });
 
 const AddLinkScreen: React.FC = () => {
-  const handleSaveLink = async (
-    values: AddLinkFormValues,
-    {resetForm}: any,
-  ) => {
+  const navigation = useNavigation<any>(); // Specify the type for useNavigation
+
+  const [formValues, setFormValues] = useState<AddLinkFormValues>({
+    title: '',
+    category: '',
+    note: '',
+    link: '',
+  });
+
+  const [errors, setErrors] = useState({
+    title: '',
+    category: '',
+    note: '',
+    link: '',
+  });
+
+  const handleInputChange = (field: keyof AddLinkFormValues, value: string) => {
+    setFormValues(prevValues => ({
+      ...prevValues,
+      [field]: value,
+    }));
+  };
+
+  const handleSaveLink = async () => {
     try {
+      await validationSchema.validate(formValues, {abortEarly: false});
       const transformedItem: SavedItem = {
         id: '',
-        title: values.title,
-        category: values.category,
-        note: values.note,
-        link: values.link,
+        title: formValues.title,
+        category: formValues.category,
+        note: formValues.note,
+        link: formValues.link,
       };
 
       await saveItem(transformedItem);
       Alert.alert('Success', 'Link saved successfully!', [{text: 'OK'}]);
-      // You can navigate to another screen or perform any other action upon success
-    } catch (error) {
-      console.error('Error saving link:', error);
-      Alert.alert('Error', 'Failed to save link. Please try again.', [
-        {text: 'OK'},
-      ]);
-    } finally {
-      if (resetForm) {
-        resetForm();
-      }
+      setFormValues({
+        title: '',
+        category: '',
+        note: '',
+        link: '',
+      });
+
+      // Navigate to the home screen
+      navigation.navigate('Home');
+    } catch (validationErrors: any) {
+      const newErrors: any = {};
+      validationErrors.inner.forEach((error: any) => {
+        newErrors[error.path] = error.message;
+      });
+      setErrors(newErrors);
     }
   };
 
@@ -68,66 +93,53 @@ const AddLinkScreen: React.FC = () => {
         }}>
         Add Link
       </Text>
-      <Formik
-        initialValues={{title: '', category: '', note: '', link: ''}}
-        onSubmit={handleSaveLink}
-        validationSchema={validationSchema}>
-        {({handleChange, handleBlur, handleSubmit, values, errors}) => (
-          <View>
-            <Text style={styles.label}>Title</Text>
-            <TextInput
-              style={styles.input}
-              onChangeText={handleChange('title')}
-              onBlur={handleBlur('title')}
-              value={values.title}
-              placeholder="Title"
-            />
-            {errors.title && (
-              <Text style={styles.errorText}>{errors.title}</Text>
-            )}
+      <View>
+        <Text style={styles.label}>Title</Text>
+        <TextInput
+          style={styles.input}
+          onChangeText={value => handleInputChange('title', value)}
+          value={formValues.title}
+          placeholder="Title"
+        />
+        {errors.title && <Text style={styles.errorText}>{errors.title}</Text>}
 
-            <RNPickerSelect
-              onValueChange={itemValue => handleChange('category')(itemValue)}
-              placeholder={{label: 'Select a Category', value: null}}
-              items={categories}
-              style={{...pickerSelectStyles}}
-              value={values.category}
-            />
-            {errors.category && (
-              <Text style={styles.errorText}>{errors.category}</Text>
-            )}
-
-            <Text style={styles.label}>Note</Text>
-            <TextInput
-              style={styles.input}
-              onChangeText={handleChange('note')}
-              onBlur={handleBlur('note')}
-              value={values.note}
-              placeholder="Note"
-            />
-            {errors.note && <Text style={styles.errorText}>{errors.note}</Text>}
-
-            <Text style={styles.label}>Link</Text>
-            <TextInput
-              style={styles.input}
-              onChangeText={handleChange('link')}
-              onBlur={handleBlur('link')}
-              value={values.link}
-              placeholder="Link"
-            />
-            {errors.link && <Text style={styles.errorText}>{errors.link}</Text>}
-
-            <TouchableOpacity
-              onPress={() => handleSubmit()}
-              style={styles.button}>
-              <Text style={styles.buttonText}>Save Link</Text>
-            </TouchableOpacity>
-          </View>
+        <RNPickerSelect
+          onValueChange={itemValue => handleInputChange('category', itemValue)}
+          placeholder={{label: 'Select a Category', value: null}}
+          items={categories}
+          style={{...pickerSelectStyles}}
+          value={formValues.category}
+        />
+        {errors.category && (
+          <Text style={styles.errorText}>{errors.category}</Text>
         )}
-      </Formik>
+
+        <Text style={styles.label}>Note</Text>
+        <TextInput
+          style={styles.input}
+          onChangeText={value => handleInputChange('note', value)}
+          value={formValues.note}
+          placeholder="Note"
+        />
+        {errors.note && <Text style={styles.errorText}>{errors.note}</Text>}
+
+        <Text style={styles.label}>Link</Text>
+        <TextInput
+          style={styles.input}
+          onChangeText={value => handleInputChange('link', value)}
+          value={formValues.link}
+          placeholder="Link"
+        />
+        {errors.link && <Text style={styles.errorText}>{errors.link}</Text>}
+
+        <TouchableOpacity onPress={handleSaveLink} style={styles.button}>
+          <Text style={styles.buttonText}>Save Link</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
+
 const pickerSelectStyles = StyleSheet.create({
   inputIOS: {
     fontSize: 16,
@@ -192,4 +204,5 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
 });
+
 export default AddLinkScreen;

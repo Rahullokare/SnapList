@@ -1,8 +1,16 @@
-import {StyleSheet, Text, View, FlatList} from 'react-native';
 import React, {useEffect, useState} from 'react';
+import {
+  StyleSheet,
+  Text,
+  View,
+  FlatList,
+  TouchableOpacity,
+  Linking,
+} from 'react-native';
 import {RouteProp} from '@react-navigation/native';
 import {RootStackParamList} from '../navigation/Navigation';
 import {getSavedItems} from '../services/storageService';
+import Icon from 'react-native-vector-icons/Feather'; // Import the icon library you choose
 
 interface CategoryViewScreenProps {
   route: RouteProp<RootStackParamList, 'Category'>;
@@ -36,11 +44,20 @@ const CategoryViewScreen: React.FC<CategoryViewScreenProps> = ({route}) => {
     fetchData();
   }, [category]);
 
+  const openLink = (url: string) => {
+    Linking.openURL(url);
+  };
+
   const renderCategoryItem: React.FC<{item: SavedItem}> = ({item}) => (
     <View style={styles.itemContainer}>
       <Text style={styles.title}>{item.title}</Text>
       <Text style={styles.note}>{item.note}</Text>
-      <Text style={styles.link}>{item.link}</Text>
+      <TouchableOpacity onPress={() => openLink(item.link)}>
+        <View style={styles.linkContainer}>
+          <Icon name="link" size={20} color="blue" style={styles.linkIcon} />
+          <Text style={styles.link}>{item.link}</Text>
+        </View>
+      </TouchableOpacity>
     </View>
   );
 
@@ -73,6 +90,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#555',
     marginBottom: 8,
+  },
+  linkContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  linkIcon: {
+    marginRight: 8,
   },
   link: {
     color: 'blue',
