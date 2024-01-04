@@ -4,12 +4,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const STORAGE_KEY = 'savedItems';
 
-interface SavedItem {
+export interface SavedItem {
   id: string;
-  name: string;
+  title: string;
   category: string;
-  tags: string[];
-  description: string;
+  note: string;
   link: string;
 }
 
@@ -21,6 +20,7 @@ export const saveItem = async (item: SavedItem): Promise<void> => {
       : [];
     const updatedItems = [...parsedItems, {...item, id: generateId()}];
     await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updatedItems));
+    console.log('Saved Successfully', updatedItems);
   } catch (error) {
     console.error('Error saving item:', error);
     throw error;
@@ -83,7 +83,7 @@ export const getAllTags = async (): Promise<string[]> => {
   try {
     const savedItems = await getSavedItems();
     const tagsSet = new Set<string>();
-    savedItems.forEach(item => item.tags.forEach(tag => tagsSet.add(tag)));
+    savedItems.forEach(item => tagsSet.add(item.note)); // Assuming notes are used as tags
     return Array.from(tagsSet);
   } catch (error) {
     console.error('Error getting tags:', error);
@@ -93,6 +93,7 @@ export const getAllTags = async (): Promise<string[]> => {
 
 const generateId = (): string => {
   return (
+    'item_' +
     Math.random().toString(36).substring(2, 15) +
     Math.random().toString(36).substring(2, 15)
   );

@@ -10,6 +10,7 @@ import {createStackNavigator} from '@react-navigation/stack';
 
 export type RootStackParamList = {
   Home: undefined;
+  HomeTab: undefined;
   Search: undefined;
   AddLink: undefined;
   Category: {category: string};
@@ -47,10 +48,11 @@ export const MainNavigator: React.FC = () => {
           inactiveTintColor: 'gray',
         })}>
         <Tab.Screen
-          name="Home"
+          name="HomeTab"
           component={HomeStack}
           options={{
             headerShown: false,
+            tabBarLabel: 'Home',
           }}
         />
         <Tab.Screen name="Search" component={SearchScreen} />
@@ -64,7 +66,13 @@ const HomeStack: React.FC = () => {
   return (
     <Stack.Navigator>
       <Stack.Screen name="Home" component={HomeScreen} />
-      <Stack.Screen name="Category" component={CategoryViewScreen} />
+      <Stack.Screen
+        name="Category"
+        component={CategoryViewScreen}
+        options={({route}) => ({
+          headerTitle: route.params.category,
+        })}
+      />
     </Stack.Navigator>
   );
 };

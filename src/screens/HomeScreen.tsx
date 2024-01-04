@@ -1,6 +1,4 @@
-// screens/HomeScreen.tsx
-
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -8,14 +6,18 @@ import {
   FlatList,
   TouchableOpacity,
   Image,
+  Linking,
 } from 'react-native';
-import CategoryCards from '../components/CategoryCards';
+import Icon from 'react-native-vector-icons/Feather';
 
-interface Link {
+import CategoryCards from '../components/CategoryCards';
+import {getSavedItems, SavedItem} from '../services/storageService';
+import {categories} from '../utils/CategoryData';
+
+interface Category {
   id: string;
-  title: string;
+  label: string;
   image: string;
-  category: string;
 }
 
 interface HomeScreenProps {
@@ -23,79 +25,56 @@ interface HomeScreenProps {
 }
 
 const HomeScreen: React.FC<HomeScreenProps> = ({navigation}) => {
-  // Sample data for saved links
-  const savedLinks: Link[] = [
-    {
-      id: '1',
-      title: 'Product 1',
-      image: 'https://picsum.photos/200/300',
-      category: 'Clothing',
-    },
-    {
-      id: '2',
-      title: 'Product 2',
-      image: 'https://picsum.photos/200/300',
-      category: 'Electronics',
-    },
-    {
-      id: '3',
-      title: 'Product 2',
-      image: 'https://picsum.photos/200/300',
-      category: 'Electronics',
-    },
-    {
-      id: '4',
-      title: 'Product 2',
-      image: 'https://picsum.photos/200/300',
-      category: 'Electronics',
-    },
-    {
-      id: '5',
-      title: 'Product 2',
-      image: 'https://picsum.photos/200/300',
-      category: 'Electronics',
-    },
-    {
-      id: '6',
-      title: 'Product 2',
-      image: 'https://picsum.photos/200/300',
-      category: 'Electronics',
-    },
-    {
-      id: '8',
-      title: 'Product 2',
-      image: 'https://picsum.photos/200/300',
-      category: 'Electronics',
-    },
-    {
-      id: '10',
-      title: 'Product 2',
-      image: 'https://picsum.photos/200/300',
-      category: 'Electronics',
-    },
-    // Add more sample data as needed
-  ];
+  const [recentlyAddedLinks, setRecentlyAddedLinks] = useState<string[]>([]);
 
-  const renderItem = ({item}: {item: Link}) => (
+  useEffect(() => {
+    // Fetch recently added links from your storage service
+    const fetchRecentlyAddedLinks = async () => {
+      const links: SavedItem[] = await getSavedItems(); // Adjust this based on your storage service implementation
+      const linkStrings = links.map(savedItem => savedItem.link); // Assuming there's a 'link' property in SavedItem
+      setRecentlyAddedLinks(linkStrings);
+    };
+
+    fetchRecentlyAddedLinks();
+  }, []);
+
+  const renderItem: React.FC<{item: Category}> = ({item}) => (
     <TouchableOpacity
       style={styles.itemContainer}
-      onPress={() =>
-        navigation.navigate('Category', {category: item.category})
-      }>
-      <CategoryCards
-        key={item.id}
-        title={item.title}
-        category={item.category}
-        image={item.image}
-      />
+      onPress={() => navigation.navigate('Category', {category: item.label})}>
+      <CategoryCards key={item.id} category={item.label} image={item.image} />
+    </TouchableOpacity>
+  );
+
+  const renderRecentlyAddedItem = (link: string) => (
+    <TouchableOpacity
+      onPress={() => {
+        if (link) {
+          Linking.openURL(link).catch(err =>
+            console.error('Error opening link:', err),
+          );
+        } else {
+          console.warn('Link is null or undefined.');
+        }
+      }}
+      style={styles.recentItemContainer}>
+      <Icon name="link" size={18} color="#0066cc" style={styles.linkIcon} />
+      <Text style={styles.link}>{link}</Text>
     </TouchableOpacity>
   );
 
   return (
     <View style={styles.container}>
-      <Text style={styles.heading}>Saved Links</Text>
       <FlatList
-        data={savedLinks}
+        ListHeaderComponent={
+          <>
+            <Text style={styles.subHeading}>Recently Added</Text>
+            {recentlyAddedLinks.slice(-5).map((link, index) => (
+              <View key={index}>{renderRecentlyAddedItem(link)}</View>
+            ))}
+          </>
+        }
+        data={categories}
         renderItem={renderItem}
         keyExtractor={item => item.id}
         horizontal={false}
@@ -111,14 +90,18 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
   },
+  link: {
+    color: 'blue',
+  },
+  linkIcon: {
+    marginRight: 8,
+  },
   heading: {
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 16,
   },
   listContainer: {
-    // flexDirection: 'row',
-    // flexWrap: 'wrap',
     width: '100%',
     gap: 30,
     justifyContent: 'center',
@@ -145,6 +128,22 @@ const styles = StyleSheet.create({
   },
   itemCategory: {
     color: '#666',
+  },
+
+  subHeading: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 12,
+    color: '#000',
+  },
+
+  recentItemContainer: {
+    display: 'flex',
+    flexDirection: 'row',
+    backgroundColor: '#E0E0E0',
+    padding: 8,
+    borderRadius: 8,
+    marginBottom: 12,
   },
 });
 

@@ -2,25 +2,20 @@ import React from 'react';
 import {ImageBackground, StyleSheet, Text, View} from 'react-native';
 
 interface CategoryCardsProps {
-  image: string | null; // Accepts null as a valid value
-  title: string;
+  image: string | null;
+
   category: string;
 }
 
-const CategoryCards: React.FC<CategoryCardsProps> = ({
-  title,
-  category,
-  image,
-}) => {
+const CategoryCards: React.FC<CategoryCardsProps> = ({category, image}) => {
   const defaultImageURL = 'https://picsum.photos/200/300'; // Provide a default image URL
-
+  console.log(category);
   return (
     <View style={styles.card}>
       <ImageBackground
         source={{uri: image || defaultImageURL}}
         resizeMode="cover"
         style={styles.image}>
-        <Text style={styles.cardTitle}>{title}</Text>
         <Text style={styles.cardCategory}>{category}</Text>
       </ImageBackground>
     </View>
@@ -37,7 +32,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     elevation: 2,
     overflow: 'hidden',
-    marginRight: 34,
+    marginRight: 30,
   },
   image: {
     display: 'flex',
